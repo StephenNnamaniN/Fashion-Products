@@ -33,5 +33,5 @@ Make sure you have:
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/StephenNnamaniN/github-practice-app.git
+git clone https://github.com/StephenNnamaniN/Fashion-Products.git
 cd github-practice-app
