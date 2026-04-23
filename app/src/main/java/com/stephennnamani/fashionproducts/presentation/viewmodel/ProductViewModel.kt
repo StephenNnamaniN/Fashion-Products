@@ -2,6 +2,7 @@ package com.stephennnamani.fashionproducts.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.stephennnamani.fashionproducts.domain.result.AppError
 import com.stephennnamani.fashionproducts.domain.result.AppResult
 import com.stephennnamani.fashionproducts.domain.usescase.GetProductUseCase
 import com.stephennnamani.fashionproducts.presentation.state.ProductUiState
@@ -25,8 +26,16 @@ class ProductViewModel(
                     _uiState.value = ProductUiState.Success(result.data)
 
                 is AppResult.Failure ->
-                    _uiState.value = ProductUiState.Error("Something went wrong.")
+                    _uiState.value = ProductUiState.Error(result.error.toUserMessage())
             }
+        }
+    }
+
+    private fun AppError.toUserMessage(): String {
+        return when (this) {
+            AppError.NetworkError -> "Please check your connection and try again."
+            AppError.ServerError -> "We're having trouble loading products right now."
+            AppError.UnknowError -> "Something unexpected went wrong."
         }
     }
 }
