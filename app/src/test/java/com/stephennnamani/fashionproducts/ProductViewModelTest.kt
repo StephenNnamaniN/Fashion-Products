@@ -1,5 +1,6 @@
 package com.stephennnamani.fashionproducts
 
+import app.cash.turbine.test
 import com.stephennnamani.fashionproducts.domain.model.Product
 import com.stephennnamani.fashionproducts.domain.result.AppError
 import com.stephennnamani.fashionproducts.domain.result.AppResult
@@ -7,14 +8,18 @@ import com.stephennnamani.fashionproducts.domain.usescase.GetProductUseCase
 import com.stephennnamani.fashionproducts.presentation.state.ProductUiState
 import com.stephennnamani.fashionproducts.presentation.viewmodel.ProductViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProductViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
     private lateinit var fakeProductRepository: FakeProductRepository
     private lateinit var useCase: GetProductUseCase
     private lateinit var viewModel: ProductViewModel
@@ -32,18 +37,33 @@ class ProductViewModelTest {
         val products = listOf(Product("1", "Shoes", "£50", true))
         fakeProductRepository.result = AppResult.Success(products)
 
-        viewModel.fetchProducts()
-        advanceUntilIdle()
+        viewModel.uiState.test {
+            assertEquals(ProductUiState.Idle, awaitItem())
 
-        assertEquals(ProductUiState.Success(products), viewModel.uiState.value)
+            viewModel.fetchProducts()
+
+            assertEquals(ProductUiState.Loading, awaitItem())
+            assertEquals(ProductUiState.Success(products), awaitItem())
+
+            cancelAndIgnoreRemainingEvents()
+        }
+
     }
 
     @Test
     fun `emits Loading then Error when useCase fails`() = runTest {
         fakeProductRepository.result = AppResult.Failure(AppError.NetworkError)
 
-        viewModel.fetchProducts()
-        advanceUntilIdle()
-        assertEquals(ProductUiState.Error("Something went wrong."), viewModel.uiState.value)
+        viewModel.uiState.test {
+            assertEquals(ProductUiState.Idle, awaitItem())
+            viewModel.fetchProducts()
+
+            assertEquals(ProductUiState.Loading, awaitItem())
+            assertEquals(ProductUiState.Error("Please check your connection and try again."),
+                awaitItem()
+            )
+
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }
