@@ -1,7 +1,9 @@
 package com.stephennnamani.fashionproducts
 
 import com.stephennnamani.fashionproducts.domain.model.Product
+import com.stephennnamani.fashionproducts.domain.result.AppError
 import com.stephennnamani.fashionproducts.domain.result.AppResult
+import com.stephennnamani.fashionproducts.domain.usescase.GetProductUseCase
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -29,5 +31,14 @@ class GetProductUseCaseTest {
         val result = useCase()
 
         assertEquals(AppResult.Success(products), result)
+    }
+
+    @Test
+    fun `returns failure when repository return failure`() = runTest {
+        fakeRepository.result = AppResult.Failure(AppError.NetworkError)
+
+        val result = useCase()
+
+        assertEquals(AppResult.Failure(AppError.NetworkError), result)
     }
 }
