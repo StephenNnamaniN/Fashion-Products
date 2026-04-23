@@ -57,4 +57,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 
     testImplementation("io.mockk:mockk:1.14.9")
+    testImplementation("app.cash.turbine:turbine:1.2.1")
 }
